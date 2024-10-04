@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "typegen": "airtable-typegen appkr8D6RbhagtXmN -z -o ./airtable.d.ts",
     "lint": "next lint"
   },
   "dependencies": {
