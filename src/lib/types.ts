@@ -7,41 +7,42 @@ export type AirtableRecord<T extends Record<string, any>> = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AirtableResponse<T extends Record<string, any>> = {
+  offset: string | undefined;
   records: AirtableRecord<T>[];
 }
 
 export type Size = {
-  url: string | null | undefined;
-  width: number | null | undefined;
-  height: number | null | undefined;
+  url: string | undefined;
+  width: number | undefined;
+  height: number | undefined;
 }
 
 export type Thumbnails = {
-  small: Size | null | undefined;
-  large: Size | null | undefined;
-  full: Size | null | undefined;
+  small: Size | undefined;
+  large: Size | undefined;
+  full: Size | undefined;
 }
 
 export type File = {
-  id: string | null | undefined;
-  width: number | null | undefined;
-  height: number | null | undefined;
-  url: string | null | undefined;
-  filename: string | null | undefined;
-  size: number | null | undefined;
-  type: string | null | undefined;
-  thumbnails: Thumbnails | null | undefined;
+  id: string | undefined;
+  width: number | undefined;
+  height: number | undefined;
+  url: string | undefined;
+  filename: string | undefined;
+  size: number | undefined;
+  type: string | undefined;
+  thumbnails: Thumbnails | undefined;
 }
 
 export type JobApplicant = {
-  Avatar: File[] | null | undefined;
-  Email: string | null | undefined;
-  "Position Applied For (Linked Record)": string[] | null | undefined;
-  "Short Description": string | null | undefined;
-  Status: string | null | undefined;
-  Phone: string | null | undefined;
-  Name: string | null | undefined;
-  "Date of Birth": string | null | undefined;
-  "Application Date": string | null | undefined;
-  "Position Applied For": string | null | undefined;
+  Avatar: File[] | undefined;
+  Email: string | undefined;
+  "Position Applied For (Linked Record)": string[] | undefined;
+  "Short Description": string | undefined;
+  Status: string | undefined;
+  Phone: string | undefined;
+  Name: string | undefined;
+  "Date of Birth": string | undefined;
+  "Application Date": string | undefined;
+  "Position Applied For": string | undefined;
 }

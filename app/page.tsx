@@ -1,20 +1,19 @@
+import ApplicantList from "~/components/Applicant/ApplicantList";
 import { readAllApplicants } from "~/lib/actions";
 
 export default async function Home() {
-  const { records } = await readAllApplicants();
+  const { records, offset } = await readAllApplicants();
 
   return (
     <div>
-      {records.map(({ fields, id }) => (
-        <div key={id}>
-          <div key={fields["Name"]}>
-            <h1>{fields["Name"]}</h1>
-            <p>{fields["Email"]}</p>
-            <p>{fields["Phone"]}</p>
-            <p>{fields["Short Description"]}</p>
-          </div>
-        </div>
-      ))}
+      {/* <h1 className="text-xl font-bold mb-4">All Applicants</h1> */}
+
+      <ApplicantList
+        initialData={records}
+        initialOffset={offset}
+        fetchFn={readAllApplicants}
+        showActionButtons
+      />
     </div>
   );
 }
