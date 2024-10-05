@@ -1,7 +1,7 @@
 import { memo, useState } from "react";
 import { JobApplicant } from "~/lib/types";
 import { Card, CardContent, CardHeader } from "~/components/ui/Card";
-import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/Avatar";
+import { Avatar, AvatarFallback } from "~/components/ui/Avatar";
 import { cn } from "~/lib/utils";
 import {
   Disclosure,
