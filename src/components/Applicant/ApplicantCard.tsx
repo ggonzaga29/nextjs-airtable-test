@@ -21,7 +21,7 @@ const ApplicantCard = memo(
   }: {
     fields: JobApplicant;
     showActionButtons: boolean;
-    id: string
+    id: string;
   }) => {
     const initials =
       fields["Name"]
@@ -60,10 +60,17 @@ const ApplicantCard = memo(
                   : "border-yellow-400"
               )}
             >
-              <AvatarImage className="size-16 object-cover " src={image} asChild>
-                {image && <Image src={image} width={64} height={64} alt={fields["Name"] ?? ""} />}
-              </AvatarImage>
-              <AvatarFallback>{initials}</AvatarFallback>
+              {image ? (
+                <Image
+                  src={image}
+                  width={64}
+                  height={64}
+                  alt={fields["Name"] ?? ""}
+                  priority
+                />
+              ) : (
+                <AvatarFallback>{initials}</AvatarFallback>
+              )}
             </Avatar>
 
             <h1 className="font-bold text-lg">{fields["Name"]}</h1>
@@ -121,7 +128,11 @@ const ApplicantCard = memo(
                 <ApplicantCardControls id={id} status={fields["Status"]} />
               )}
 
-              <ApplicantAIPopover position={fields["Position Applied For"]} description={fields["Short Description"]} id={id}/>
+              <ApplicantAIPopover
+                position={fields["Position Applied For"]}
+                description={fields["Short Description"]}
+                id={id}
+              />
             </div>
           </div>
         </CardContent>

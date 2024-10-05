@@ -1,6 +1,4 @@
 "use server";
-import { vertex } from "@ai-sdk/google-vertex";
-import { generateText } from "ai";
 import { revalidateTag } from "next/cache";
 import { airtableFetch } from "~/lib/airtableFetch";
 import {
@@ -165,27 +163,46 @@ export const generateAIRecommendation = async ({
   description: string;
   id: string;
 }) => {
+  type ResponseType = {
+    text: string
+  }
+
   if (!id || !position || !description) {
     console.error("ID, Position, and Description are required.");
     return;
   }
 
-  const { text } = await generateText({
-    model: vertex('gemini-1.5-flash'),
-    messages: [
-      {
-        role: 'system',
-        content: `Analyze the applicant’s fit for the role in a brief paragraph. Begin your response with the percentage breakdown of 'Accept: X%' and 'Reject: X%' based on your evaluation. Then, provide a short assessment highlighting key strengths and any noticeable gaps. Conclude your response with 'Conclusion: Accept' or 'Conclusion: Reject' based on your analysis. Submit the response in plain text only`
-      },
-      {
-        role: 'user',
-        content: `Position: ${position}\n\nDescription: ${description}`
-      }
-    ]
-  });
+  const url = process.env.ELDFELL_URL;
+  const key = process.env.ELDFELL_API_KEY;
 
-  await kv.set(id, text);
-  return text;
+  if (!url || !key) {
+    console.error("ELDFELL_URL and ELDFELL_API_KEY are required.");
+    return;
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        prompt: `Position: ${position}\n\nDescription: ${description}`
+      })
+    })
+  
+    const { text } = await response.json() as ResponseType;
+
+    if(!text) {
+      throw new Error();
+    }
+  
+    await kv.set(id, text);
+    return text;
+  } catch(e) {
+    console.error(e);
+    return 'Error generating AI recommendation';
+  }
 }
 
 export const getSavedAIRecommendation = async (id: string) => {

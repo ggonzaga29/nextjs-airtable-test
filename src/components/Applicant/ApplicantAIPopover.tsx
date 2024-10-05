@@ -30,6 +30,10 @@ export default function ApplicantAIPopover({
   const [note, setNote] = useState<string>("Click 'Generate' to get AI Recommendation");
 
   useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
     const getRecommendation = async () => {
 
       setNote("Loading AI Recommendation...");
@@ -39,7 +43,7 @@ export default function ApplicantAIPopover({
     }
 
     getRecommendation();
-  }, [id]);
+  }, [id, isOpen]);
 
   const getRecommendation = async (id: string, position?: string, description?: string, ) => {
     if (!position || !description) {

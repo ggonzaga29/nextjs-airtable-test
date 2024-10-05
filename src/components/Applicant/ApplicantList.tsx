@@ -8,6 +8,7 @@ import ApplicantCard from "~/components/Applicant/ApplicantCard";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { DownToBottom } from "@carbon/icons-react";
 import { Loader } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 const ApplicantList = memo(
   ({
@@ -25,10 +26,12 @@ const ApplicantList = memo(
       tags?: string[]
     ) => Promise<AirtableResponse<JobApplicant>>;
   }) => {
+    const search = useSearchParams(); 
     const [data, setData] =
       useState<AirtableRecord<JobApplicant>[]>(initialData);
     const [offset, setOffset] = useState<string | undefined>(initialOffset);
     const [isLoading, setIsLoading] = useState(false);
+    const [offsetArray, setOffsetArray] = useState<string[]>([]);
 
     const handleLoadMore = useCallback(async () => {
       if (isLoading) return; // Prevent Race Condition
@@ -42,8 +45,16 @@ const ApplicantList = memo(
       setData([...data, ...records]);
       setOffset(newOffset);
 
+      const searchOffsetArray = search.get("offset")?.split(",") ?? [];
+      if (newOffset && !searchOffsetArray.includes(newOffset)) {
+        setOffsetArray([...searchOffsetArray, newOffset]);
+      
+        // search.set("offset", offsetArray.join(","));k
+      }
+
+
       setIsLoading(false);
-    }, [data, fetchFn, isLoading, offset]);
+    }, [data, fetchFn, isLoading, offset, search]);
 
     return (
       <section>
