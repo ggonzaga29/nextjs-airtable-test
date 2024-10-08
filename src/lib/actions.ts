@@ -4,13 +4,15 @@ import { airtableFetch } from "~/lib/airtableFetch";
 import {
   ACCEPTED_APPLICANTS_QUERY,
   ALL_APPLICANTS_QUERY,
+  ALL_JOB_POSITIONS_QUERY,
   DEFAULT_PAGE_SIZE,
   REJECTED_APPLICANTS_QUERY,
 } from "~/lib/constants";
-import { AirtableResponse, JobApplicant } from "~/lib/types";
+import { AirtableRecord, AirtableResponse, JobApplicant, JobPosition } from "~/lib/types";
 import { kv } from "@vercel/kv";
+import { applicantFormSchema, ApplicantFormSchema } from "~/lib/schema";
 
-const fetchApplicants = async ({
+export const fetchApplicants = async ({
   query,
   tags,
   pageSize,
@@ -33,62 +35,17 @@ const fetchApplicants = async ({
       }
     );
 
-  // const retryAttempts = 0;
-
   try {
     const data = await fetchFn(offsetQuery);
-
     return data;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(error);
-
-    /**
-     * Handles errors related to Airtable's offset token expiration.
-     * Airtable provides an offset token for pagination, which expires after a certain period of time.
-     * When the token expires, a "LIST_RECORDS_ITERATOR_NOT_AVAILABLE" error is thrown.
-     * This code retries the fetch operation up to 3 times, busting the cache each time.
-     * To get the offset token, aka by not passing the offset parameter.
-     */
-    // if ("error" in error) {
-    //   if ("type" in error.error) {
-    //     if (error.error.type === "LIST_RECORDS_ITERATOR_NOT_AVAILABLE") {
-    //       while (!retryAttempts || retryAttempts < 3) {
-    //         retryAttempts += 1;
-
-    //         try {
-    //           console.error(
-    //             "Retrying and busting cache: ",
-    //             "LIST_RECORDS_ITERATOR_NOT_AVAILABLE"
-    //           );
-    //           revalidateTag("job-applicants");
-    //           const firstData = await fetchFn();
-    //           if (!firstData.offset) {
-    //             break;
-    //           }
-
-    //           const data = await fetchFn(`&offset=${firstData.offset}`);
-    //           // After successful, revalidating paths will refresh any of these pages
-    //           revalidatePath("/");
-    //           revalidatePath("/accepted-applicants");
-    //           revalidatePath("/rejected-applicants");
-
-    //           return data;
-    //         } catch (retryError) {
-    //           if (retryAttempts === 2) {
-    //             console.error("Max retries reached: ", retryError);
-    //             throw retryError;
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
+    return {
+      offset: undefined,
+      records: [],
+    };
   }
-
-  return {
-    offset: undefined,
-    records: [],
-  };
 };
 
 export const readAllApplicants = (
@@ -154,6 +111,39 @@ export const patchApplicantStatus = async (
   }
 };
 
+// Job Positions
+export const readAllJobs = async () => {
+  try {
+    const { records, offset } = await airtableFetch<AirtableResponse<JobPosition>>(ALL_JOB_POSITIONS_QUERY, {
+      next: {
+        tags: ["job-positions"],
+        revalidate: 240,
+      }
+    });
+  
+    return { records, offset };
+  } catch (e) {
+    console.error(e);
+    return { records: [], offset: undefined };
+  }
+}
+
+export const readJob = async (id: string) => {
+  try {
+    const job = await airtableFetch<AirtableRecord<JobPosition>>(`Job%20Positions/${id}`, {
+      next: {
+        tags: ["job-positions"],
+        revalidate: 240,
+      }
+    });
+
+    return job;
+  } catch (e) {
+    console.error(e);
+    return undefined;
+  }
+}
+
 export const generateAIRecommendation = async ({
   position,
   description,
@@ -209,3 +199,72 @@ export const getSavedAIRecommendation = async (id: string) => {
   const text = await kv.get<string>(id);
   return text;
 };
+
+export const createApplicant = async (fields: ApplicantFormSchema) => {
+  const { data, success, error } = applicantFormSchema.safeParse(fields);
+
+  if (!success || error) {
+    throw error;
+  }
+
+  const { job_position, name, email, phone, short_description, date_of_birth } = data;
+
+  const formattedDateOfBirth = new Date(date_of_birth).toISOString().split('T')[0];
+
+
+  const body = {
+    records: [
+      {
+        fields: {
+          "Name": name,
+          "Email": email,
+          "Phone": phone,
+          "Application Date": new Date().toISOString().split('T')[0],
+          "Short Description": short_description,
+          "Date of Birth": formattedDateOfBirth,
+          "Status": 'Pending',
+          "Position Applied For (Linked Record)": [
+            job_position
+          ]
+        },
+      },
+    ],
+  };
+
+  console.log(JSON.stringify(body));
+
+  const response = await airtableFetch<JobApplicant>("Job%20Applicants", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+  if(response) {
+    revalidateTag("job-applicants");
+    return response;
+  }
+
+  throw new Error('Error creating applicant');
+}
+
+export const deleteApplicant = (id: string) => {
+  const url = `Job%20Applicants?records[]=${id}`;
+  console.log(id)
+
+  try {
+    const response = airtableFetch<{
+      records: {
+        id: string;
+        deleted: boolean;
+      }[]
+     }>(url, {
+      method: "DELETE",
+    });
+
+    revalidateTag("job-applicants");
+
+    return response;
+  } catch (e) {
+    console.error(e);
+    return []
+  }
+} 

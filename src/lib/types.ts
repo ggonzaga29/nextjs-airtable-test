@@ -46,3 +46,13 @@ export type JobApplicant = {
   "Application Date": string | undefined;
   "Position Applied For": string | undefined;
 }
+
+export type JobPosition = {
+  "Position Title": string;
+  "Job Description": string | undefined;
+  "Salary Range": string | undefined;
+  "Application Deadline": string | undefined;
+  "Applicants": string[] | undefined;
+  "Total Applicants": number;
+  "Total Accepted Applicants": number;
+}

@@ -30,7 +30,7 @@ const Navigation = () => {
         const isActive = pathname === href;
 
         return (
-          <Link key={href} href={href} className={cn("relative transition-colors pb-3", isActive
+          <Link key={href} href={href} className={cn("relative transition-colors pb-3 hover:text-foreground", isActive
             ? 'text-foreground'
             : 'text-muted-foreground')}>
             {label}

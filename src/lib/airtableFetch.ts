@@ -14,7 +14,7 @@ export const airtableFetch =
     newHeaders.set("Content-Type", "application/json");
 
     // const encodedUrl = encodeURIComponent(url.toString());
-    console.log(`fetching ${base_url}/${url}`);
+    // console.log(`fetching ${base_url}/${url}`);
 
     const response = await fetch(`${base_url}/${url}`, {
       ...init,

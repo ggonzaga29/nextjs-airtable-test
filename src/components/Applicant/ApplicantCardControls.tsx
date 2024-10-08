@@ -1,26 +1,30 @@
-'use client';
+"use client";
 
-import { CheckmarkOutline, SubtractAlt } from "@carbon/icons-react";
+import { CheckmarkOutline, SubtractAlt, TrashCan } from "@carbon/icons-react";
 import { Loader } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/Button";
-import { patchApplicantStatus } from "~/lib/actions";
+import { deleteApplicant, patchApplicantStatus } from "~/lib/actions";
 import { cn } from "~/lib/utils";
 import { toast } from "sonner";
 
-const ApplicantCardControls = ({ id, status }: { id: string, status: string }) => {
+const ApplicantCardControls = ({
+  id,
+  status,
+}: {
+  id: string;
+  status: string;
+}) => {
   const [isRejecting, setIsRejecting] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleReject = async (id: string) => {
     setIsRejecting(true);
 
-    const req = patchApplicantStatus(
-      id,
-      {
-        Status: "Declined",
-      },
-    );
+    const req = patchApplicantStatus(id, {
+      Status: "Declined",
+    });
 
     toast.promise(
       async () => {
@@ -40,29 +44,58 @@ const ApplicantCardControls = ({ id, status }: { id: string, status: string }) =
   const handleAccept = async (id: string) => {
     setIsAccepting(true);
 
-    const req = patchApplicantStatus(
-      id,
+    const req = patchApplicantStatus(id, {
+      Status: "Accepted",
+    });
+
+    toast.promise(
+      async () => {
+        await req;
+        setIsAccepting(true);
+      },
       {
-        Status: "Accepted",
-      },
+        loading: "Accepting...",
+        success: () => {
+          setIsAccepting(false);
+          return "Applicant Accepted";
+        },
+        error: "Failed to Accept Applicant",
+      }
     );
+  };
 
-    toast.promise(async () => {
-      await req;
-      setIsAccepting(true);
-    }, {
-      loading: "Accepting...",
-      success: () => {
-        setIsAccepting(false);
-        return "Applicant Accepted";
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true);
+
+    toast.promise(
+      async () => {
+        await deleteApplicant(id);
       },
-      error: "Failed to Accept Applicant",
-    })
-
+      {
+        loading: "Deleting...",
+        success: () => {
+          setIsDeleting(false);
+          return "Applicant Deleted";
+        },
+        error: "Failed to Delete Applicant",
+      }
+    );
   };
 
   return (
     <div className="flex gap-2 grow">
+      <Button
+        size="icon"
+        variant="secondary"
+        title="Delete Applicant"
+        onClick={() => handleDelete(id)}
+      >
+        {isDeleting ? (
+          <Loader size={16} className="animate-spin" />
+        ) : (
+          <TrashCan size={16} />
+        )}
+      </Button>
       <Button
         variant="secondary"
         className={cn(

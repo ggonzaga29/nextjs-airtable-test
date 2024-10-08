@@ -183,6 +183,7 @@ export function DisclosureContent({
   );
 }
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default {
   Disclosure,
   DisclosureProvider,

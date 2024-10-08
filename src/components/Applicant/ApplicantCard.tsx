@@ -73,7 +73,7 @@ const ApplicantCard = memo(
               )}
             </Avatar>
 
-            <h1 className="font-bold text-lg">{fields["Name"]}</h1>
+            <h3 className="font-bold text-lg">{fields["Name"]}</h3>
             <span className="text-sm text-muted-foreground">
               {fields["Position Applied For"]}
             </span>
